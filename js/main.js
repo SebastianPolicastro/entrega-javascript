@@ -1,4 +1,5 @@
 let registrosUsuarios = []
+let usuarioActual
 
 const calculadora = {
 sumar: (a, b) => a + b,
@@ -20,7 +21,7 @@ if (usuarioExistente) {
 
 const nuevoUsuario = {
     nombre: nombreUsuario,
-    pass: prompt("Ingrese una contraseña"),
+    pass: prompt("Ingrese una contraseña")
 }
 
 registrosUsuarios.push(nuevoUsuario)
@@ -38,6 +39,7 @@ while (intentos > 0) {
     (usuario) => usuario.nombre === nombreUsuario && usuario.pass === passUsuario)
 
     if (usuarioEncontrado) {
+        usuarioActual = usuarioEncontrado
     alert("Logueado correctamente")
     return
     } else {
@@ -147,7 +149,7 @@ let eleccion = mostrarMenu()
 while (eleccion !== 3) {
 switch (eleccion) {
     case 1:
-    calcularPromedio()
+    calcularPromedio(usuarioActual)
     break
     case 2:
     realizarOperacionMatematica()
