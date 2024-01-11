@@ -1,165 +1,166 @@
-let registrosUsuarios = []
-let usuarioActual
+let registrosUsuarios = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
+let usuarioActual;
 
 const calculadora = {
-sumar: (a, b) => a + b,
-restar: (a, b) => a - b,
-multiplicar: (a, b) => a * b,
-dividir: (a, b) => (b !== 0 ? a / b : (alert("No se puede dividir por cero"), null)),
+  '+': (a, b) => a + b,
+  '-': (a, b) => a - b,
+  '*': (a, b) => a * b,
+  '/': (a, b) => (b !== 0 ? a / b : (mostrarMensaje("No se puede dividir por cero"), null)),
+};
+
+function mostrarMensaje(mensaje, tipo = 'error') {
+  const mensajeElement = document.getElementById('mensaje');
+  mensajeElement.textContent = mensaje;
+  mensajeElement.className = tipo === 'error' ? 'error' : 'success';
+
+
+  setTimeout(() => {
+    mensajeElement.textContent = '';
+    mensajeElement.className = '';
+  }, 6000);
 }
 
 function registrarUsuario() {
-const nombreUsuario = prompt("Ingrese un nombre de usuario a registrar").toLowerCase()
+  const nombreUsuario = document.getElementById('nombreUsuario').value.toLowerCase();
 
+  const usuarioExistente = registrosUsuarios.find((usuario) => usuario.nombre === nombreUsuario);
 
-const usuarioExistente = registrosUsuarios.find((usuario) => usuario.nombre === nombreUsuario)
+  if (usuarioExistente) {
+    mostrarMensaje("El nombre de usuario ya está en uso. Por favor, elija otro.");
+    return;
+  }
 
-if (usuarioExistente) {
-    alert("El nombre de usuario ya está en uso. Por favor, elija otro.")
-    return
-}
-
-const nuevoUsuario = {
+  const nuevaContrasena = document.getElementById('contrasena').value;
+  const nuevoUsuario = {
     nombre: nombreUsuario,
-    pass: prompt("Ingrese una contraseña")
-}
+    pass: nuevaContrasena,
+  };
 
-registrosUsuarios.push(nuevoUsuario)
-alert("Usuario registrado correctamente")
+  registrosUsuarios.push(nuevoUsuario);
+  localStorage.setItem('registrosUsuarios', JSON.stringify(registrosUsuarios));
+  mostrarMensaje("Usuario registrado correctamente", 'success');
+  habilitarOpciones();
 }
 
 function login() {
-let intentos = 3
+  const nombreUsuario = document.getElementById('nombreUsuario').value.toLowerCase();
+  const passUsuario = document.getElementById('contrasena').value;
 
-while (intentos > 0) {
-    const nombreUsuario = prompt("Ingrese su nombre de usuario para logear").toLowerCase()
-    const passUsuario = prompt("Ingrese la contraseña")
+  const usuarioEncontrado = registrosUsuarios.find(
+    (usuario) => usuario.nombre === nombreUsuario && usuario.pass === passUsuario
+  );
 
-    const usuarioEncontrado = registrosUsuarios.find(
-    (usuario) => usuario.nombre === nombreUsuario && usuario.pass === passUsuario)
-
-    if (usuarioEncontrado) {
-        usuarioActual = usuarioEncontrado
-    alert("Logueado correctamente")
-    return
-    } else {
-    alert(`Nombre de usuario o contraseña incorrectos. Intentos restantes: ${intentos}`)
-    intentos--
-    }
+  if (usuarioEncontrado) {
+    usuarioActual = usuarioEncontrado;
+    mostrarMensaje("Logueado correctamente", 'success');
+    document.getElementById('formulario').style.display = 'none';
+    document.getElementById('logged-in').style.display = 'block';
+    habilitarOpciones();
+  } else {
+    mostrarMensaje("Nombre de usuario o contraseña incorrectos.");
+  }
 }
 
-alert("Demasiados intentos incorrectos. Saliendo del sistema.")
-throw new Error("Demasiados intentos incorrectos")
+function habilitarOpciones() {
+  document.getElementById('eleccionMenu').disabled = false;
 }
 
-function mostrarMenu() {
-return Number(prompt("Escribe 1 para calcular el promedio, 2 para realizar una operación matemática y 3 para salir del sistema"))
-}
+function manejarSeleccionMenu() {
+  resetearInterfaz();
 
-function obtenerNotas() {
-const notasArray = []
-const cantidadNotas = Number(prompt("Ingrese la cantidad de notas a calcular"))
+  const eleccion = document.getElementById('eleccionMenu').value;
 
-if (isNaN(cantidadNotas) || cantidadNotas <= 0) {
-    alert("Ingrese un número válido y mayor que cero para la cantidad de notas")
-    return obtenerNotas() 
-}
-
-for (let i = 0; i < cantidadNotas; i++) {
-    let nota
-    do {
-    nota = Number(prompt("Ingresa tu nota Nro " + (i + 1)))
-    if (isNaN(nota)) {
-        alert("Por favor, ingrese una nota válida.")
-    }
-    } while (isNaN(nota))
-    notasArray.push(nota)
-}
-
-return notasArray
-}
-
-function calcularPromedio() {
-alert("Elección 1, a calcular promedios")
-const notasArray = obtenerNotas()
-
-const sumador = notasArray.reduce((acc, nota) => acc + nota, 0)
-const promedio = sumador / notasArray.length
-alert("El promedio de " + usuarioActual.nombre + " es " + promedio.toFixed(2))
+  switch (eleccion) {
+    case "1":
+      document.getElementById('calculoPromedio').style.display = 'block';
+      break;
+    case "2":
+      document.getElementById('operacionesMatematicas').style.display = 'block';
+      document.getElementById('realizarOperacionBtn').style.display = 'block';
+      break;
+    case "3":
+      mostrarMensaje("Saliendo del sistema!", 'success');
+      resetearInterfaz();
+      break;
+    default:
+      mostrarMensaje("Seleccione una opción válida");
+      break;
+  }
 }
 
 function realizarOperacionMatematica() {
-do {
-    alert("Elección 2, a realizar una operación matemática")
-    const num1 = Number(prompt("Ingrese el primer número"))
+  const num1 = Number(document.getElementById('num1').value);
+  const num2 = Number(document.getElementById('num2').value);
+  const operacion = document.getElementById('operacion').value;
 
-    if (isNaN(num1)) {
-    alert("Por favor, ingrese números válidos o escriba 'salir' para volver al menú principal.")
-    break
-    }
+  const resultado =
+    operacion in calculadora
+      ? calculadora[operacion](num1, num2)
+      : (mostrarMensaje("Operación no válida. Utilice +, -, *, /"), null);
 
-    const num2 = Number(prompt("Ingrese el segundo número"))
-
-    if (isNaN(num2)) {
-    alert("Por favor, ingrese números válidos o escriba 'salir' para volver al menú principal.")
-    break
-    }
-
-    const operacion = prompt("Ingrese la operación matemática (+, -, *, /)")
-
-
-    switch (operacion) {
-    case '+':
-        mostrarResultado(calculadora.sumar(num1, num2))
-        break
-    case '-':
-        mostrarResultado(calculadora.restar(num1, num2))
-        break
-    case '*':
-        mostrarResultado(calculadora.multiplicar(num1, num2))
-        break
-    case '/':
-        mostrarResultado(calculadora.dividir(num1, num2))
-        break
-    case 'salir':
-        return
-    default:
-        alert("Operación no válida");
-    }
-
-
-    const continuar = confirm("¿Desea realizar otra operación?")
-    if (!continuar) {
-    break
-    }
-} while (true)
+  mostrarResultado(resultado);
 }
 
 function mostrarResultado(resultado) {
-if (resultado !== null) {
-    alert("Resultado: " + resultado)
-}
-}
-
-registrarUsuario()
-login()
-
-let eleccion = mostrarMenu()
-
-while (eleccion !== 3) {
-switch (eleccion) {
-    case 1:
-    calcularPromedio(usuarioActual)
-    break
-    case 2:
-    realizarOperacionMatematica()
-    break
-    default:
-    alert("Elección inválida. Por favor, selecciona 1, 2 o 3")
-    break
+  if (resultado !== null) {
+    mostrarMensaje(`Resultado: ${resultado}`, 'success');
+  }
 }
 
-eleccion = mostrarMenu()
+function calcularPromedio() {
+  const cantidadNotas = Number(document.getElementById('cantidadNotas').value);
+
+  if (isNaN(cantidadNotas) || cantidadNotas <= 0 || cantidadNotas >= 11) {
+    mostrarMensaje("Ingrese un número válido, mayor que cero y menor que diez para la cantidad de notas");
+    return;
+  }
+
+  const notasArray = [];
+  const notasContainer = document.getElementById('notasContainer');
+  notasContainer.innerHTML = ''; 
+
+  for (let i = 0; i < cantidadNotas; i++) {
+    const notaInput = document.createElement('input');
+    notaInput.type = 'number';
+    notaInput.placeholder = `Ingresa tu nota Nro ${i + 1}`;
+    notaInput.classList.add('nota-input');
+    notasContainer.appendChild(notaInput);
+
+    notasArray.push(notaInput);
+  }
+
+  const calcularPromedioBtn = document.createElement('button');
+  calcularPromedioBtn.textContent = 'Calcular Promedio';
+  calcularPromedioBtn.addEventListener('click', () => {
+    const notasNumericas = notasArray.map((notaInput) => Number(notaInput.value));
+
+    if (notasNumericas.some((nota) => isNaN(nota))) {
+      mostrarMensaje("Por favor, ingrese notas válidas.");
+      return;
+    }
+
+    const sumador = notasNumericas.reduce((acc, nota) => acc + nota, 0);
+    const promedio = sumador / notasNumericas.length;
+    mostrarMensaje(`El promedio de ${usuarioActual.nombre} es ${promedio.toFixed(2)}`, 'success');
+  });
+
+  notasContainer.appendChild(calcularPromedioBtn);
 }
 
-alert("Saliendo del sistema!")
+function resetearInterfaz() {
+  document.getElementById('calculoPromedio').style.display = 'none';
+  document.getElementById('operacionesMatematicas').style.display = 'none';
+  document.getElementById('realizarOperacionBtn').style.display = 'none';
+  document.getElementById('num1').value = '';
+  document.getElementById('num2').value = '';
+  document.getElementById('operacion').value = '+';
+  document.getElementById('cantidadNotas').value = '';
+}
+
+
+
+document.getElementById('registrarBtn').addEventListener('click', registrarUsuario);
+document.getElementById('loginBtn').addEventListener('click', login);
+document.getElementById('realizarOperacionBtn').addEventListener('click', realizarOperacionMatematica);
+document.getElementById('calcularPromedioBtn').addEventListener('click', calcularPromedio);
+document.getElementById('eleccionMenu').addEventListener('change', manejarSeleccionMenu);
