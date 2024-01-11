@@ -23,6 +23,7 @@ body {
 
   form {
     margin-bottom: 20px;
+    padding: 3.125rem;
   }
 
   label {
@@ -33,7 +34,7 @@ body {
   input,
   select {
     width: 100%;
-    padding: 8px;
+    padding: .5rem;
     margin-bottom: 10px;
   }
 
@@ -44,6 +45,7 @@ body {
     border: none;
     cursor: pointer;
     width: 100%;
+    margin: .625rem;
   }
 
   button:hover {
