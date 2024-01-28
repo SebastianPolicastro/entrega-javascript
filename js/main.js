@@ -1,5 +1,4 @@
-let registrosUsuarios = JSON.parse(localStorage.getItem('registrosUsuarios')) || [];
-let usuarioActual;
+document.addEventListener('DOMContentLoaded', iniciarApp);
 
 const calculadora = {
   '+': (a, b) => a + b,
@@ -8,20 +7,46 @@ const calculadora = {
   '/': (a, b) => (b !== 0 ? a / b : (mostrarMensaje("No se puede dividir por cero"), null)),
 };
 
-function mostrarMensaje(mensaje, tipo = 'error') {
-  const mensajeElement = document.getElementById('mensaje');
-  mensajeElement.textContent = mensaje;
-  mensajeElement.className = tipo === 'error' ? 'error' : 'success';
+let registrosUsuarios = [];
+let usuarioActual;
+
+async function iniciarApp() {
+  await obtenerRegistrosUsuarios();
 
 
-  setTimeout(() => {
-    mensajeElement.textContent = '';
-    mensajeElement.className = '';
-  }, 6000);
+  document.getElementById('registrarBtn').addEventListener('click', registrarUsuario);
+  document.getElementById('loginBtn').addEventListener('click', login);
+  document.getElementById('calcularPromedioBtn').addEventListener('click', mostrarCalculoPromedio);
+  document.getElementById('realizarOperacionBtn').addEventListener('click', realizarOperacionMatematica);
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+
+  const operacionButtons = document.querySelectorAll('.operacionBtn');
+  operacionButtons.forEach(button => button.addEventListener('click', realizarOperacionMatematica));
+  
+  };
+
+
+
+async function obtenerRegistrosUsuarios() {
+  try {
+    const response = await fetch('registro_usuarios.json');
+    if (!response.ok) {
+      throw new Error('Error al obtener los registros de usuarios.');
+    }
+    registrosUsuarios = await response.json();
+  } catch (error) {
+    console.error(error.message);
+  }
 }
 
-function registrarUsuario() {
-  const nombreUsuario = document.getElementById('nombreUsuario').value.toLowerCase();
+async function registrarUsuario() {
+  const nombreUsuario = document.getElementById('nombreUsuario').value.trim().toLowerCase();
+  const nuevaContrasena = document.getElementById('contrasena').value;
+  
+  if (nombreUsuario === '' || nuevaContrasena === '') {
+    mostrarMensaje("Por favor, ingrese un nombre de usuario y contraseña.");
+    return;
+  }
 
   const usuarioExistente = registrosUsuarios.find((usuario) => usuario.nombre === nombreUsuario);
 
@@ -30,7 +55,7 @@ function registrarUsuario() {
     return;
   }
 
-  const nuevaContrasena = document.getElementById('contrasena').value;
+  
   const nuevoUsuario = {
     nombre: nombreUsuario,
     pass: nuevaContrasena,
@@ -42,7 +67,7 @@ function registrarUsuario() {
   habilitarOpciones();
 }
 
-function login() {
+async function login() {
   const nombreUsuario = document.getElementById('nombreUsuario').value.toLowerCase();
   const passUsuario = document.getElementById('contrasena').value;
 
@@ -61,26 +86,32 @@ function login() {
   }
 }
 
+function logout() {
+  usuarioActual = null;
+  document.getElementById('formulario').style.display = 'block';
+  document.getElementById('logged-in').style.display = 'none';
+  resetearInterfaz();
+  mostrarMensaje("Sesión cerrada", 'success');
+}
+
 function habilitarOpciones() {
-  document.getElementById('eleccionMenu').disabled = false;
+  document.getElementById('menuButtons').style.display = 'block';
 }
 
 function manejarSeleccionMenu() {
   resetearInterfaz();
 
-  const eleccion = document.getElementById('eleccionMenu').value;
+  const eleccion = this.id;
 
   switch (eleccion) {
-    case "1":
-      document.getElementById('calculoPromedio').style.display = 'block';
+    case "calculoPromedioBtn":
+      mostrarCalculoPromedio();
       break;
-    case "2":
-      document.getElementById('operacionesMatematicas').style.display = 'block';
-      document.getElementById('realizarOperacionBtn').style.display = 'block';
+    case "operacionesMatematicasBtn":
+      mostrarOperacionesMatematicas();
       break;
-    case "3":
-      mostrarMensaje("Saliendo del sistema!", 'success');
-      resetearInterfaz();
+    case "logoutBtn":
+      logout();
       break;
     default:
       mostrarMensaje("Seleccione una opción válida");
@@ -88,26 +119,71 @@ function manejarSeleccionMenu() {
   }
 }
 
-function realizarOperacionMatematica() {
-  const num1 = Number(document.getElementById('num1').value);
-  const num2 = Number(document.getElementById('num2').value);
-  const operacion = document.getElementById('operacion').value;
+function mostrarCalculoPromedio() {
+  resetearInterfaz();
+  const cantidadNotasInput = document.getElementById('cantidadNotas');
+  if (cantidadNotasInput) {
+    cantidadNotasInput.value = '';
+  }
 
-  const resultado =
-    operacion in calculadora
-      ? calculadora[operacion](num1, num2)
-      : (mostrarMensaje("Operación no válida. Utilice +, -, *, /"), null);
+  document.getElementById('calculoPromedio').style.display = 'block';
 
-  mostrarResultado(resultado);
+  const calcularPromedioBtn = document.getElementById('realizarCalculoPromedioBtn');
+  calcularPromedioBtn.addEventListener('click', calcularPromedio);
 }
 
+function mostrarOperacionesMatematicas() {
+  resetearInterfaz();
+  const num1Input = document.getElementById('num1');
+  const num2Input = document.getElementById('num2');
+
+  if (num1Input) {
+    num1Input.value = '';
+  }
+
+  if (num2Input) {
+    num2Input.value = '';
+  }
+
+  document.getElementById('operacionesMatematicas').style.display = 'block';
+}
+
+document.getElementById('operacionesMatematicasBtn').addEventListener('click', mostrarOperacionesMatematicas);
+
+async function realizarOperacionMatematica() {
+  const num1 = Number(document.getElementById('num1').value);
+  const num2 = Number(document.getElementById('num2').value);
+  const operacion = this.dataset.operacion;
+
+  if (!isNaN(num1) && !isNaN(num2)) {
+    const resultado =
+      operacion in calculadora
+        ? calculadora[operacion](num1, num2)
+        : (mostrarMensaje("Operación no válida. Utilice +, -, *, /"), null);
+
+    mostrarResultado(resultado);
+  } else {
+    mostrarMensaje("Por favor, ingrese números válidos para realizar la operación.");
+  }
+}
+
+function seleccionarOperacion() {
+  const operacion = this.dataset.operacion;
+  const operacionInput = document.getElementById('operacion');
+
+  if (operacionInput) {
+    operacionInput.value = operacion;
+  } else {
+    console.error("No se encontró el elemento con ID 'operacion'");
+  }
+}
 function mostrarResultado(resultado) {
   if (resultado !== null) {
     mostrarMensaje(`Resultado: ${resultado}`, 'success');
   }
 }
 
-function calcularPromedio() {
+async function calcularPromedio() {
   const cantidadNotas = Number(document.getElementById('cantidadNotas').value);
 
   if (isNaN(cantidadNotas) || cantidadNotas <= 0 || cantidadNotas >= 11) {
@@ -115,9 +191,8 @@ function calcularPromedio() {
     return;
   }
 
-  const notasArray = [];
   const notasContainer = document.getElementById('notasContainer');
-  notasContainer.innerHTML = ''; 
+  notasContainer.innerHTML = '';
 
   for (let i = 0; i < cantidadNotas; i++) {
     const notaInput = document.createElement('input');
@@ -125,14 +200,13 @@ function calcularPromedio() {
     notaInput.placeholder = `Ingresa tu nota Nro ${i + 1}`;
     notaInput.classList.add('nota-input');
     notasContainer.appendChild(notaInput);
-
-    notasArray.push(notaInput);
   }
 
   const calcularPromedioBtn = document.createElement('button');
   calcularPromedioBtn.textContent = 'Calcular Promedio';
-  calcularPromedioBtn.addEventListener('click', () => {
-    const notasNumericas = notasArray.map((notaInput) => Number(notaInput.value));
+  calcularPromedioBtn.addEventListener('click', function() {
+    const notaInputs = document.querySelectorAll('.nota-input');
+    const notasNumericas = Array.from(notaInputs).map((notaInput) => Number(notaInput.value));
 
     if (notasNumericas.some((nota) => isNaN(nota))) {
       mostrarMensaje("Por favor, ingrese notas válidas.");
@@ -141,6 +215,7 @@ function calcularPromedio() {
 
     const sumador = notasNumericas.reduce((acc, nota) => acc + nota, 0);
     const promedio = sumador / notasNumericas.length;
+
     mostrarMensaje(`El promedio de ${usuarioActual.nombre} es ${promedio.toFixed(2)}`, 'success');
   });
 
@@ -148,19 +223,45 @@ function calcularPromedio() {
 }
 
 function resetearInterfaz() {
-  document.getElementById('calculoPromedio').style.display = 'none';
-  document.getElementById('operacionesMatematicas').style.display = 'none';
+  const calculoPromedioDiv = document.getElementById('calculoPromedio');
+  const operacionesMatematicasDiv = document.getElementById('operacionesMatematicas');
+  const num1Input = document.getElementById('num1');
+  const num2Input = document.getElementById('num2');
+  const operacionInput = document.getElementById('operacion');
+  const cantidadNotasInput = document.getElementById('cantidadNotas');
+
+  if (calculoPromedioDiv) {
+    calculoPromedioDiv.style.display = 'none';
+  }
+
+  if (operacionesMatematicasDiv) {
+    operacionesMatematicasDiv.style.display = 'none';
+  }
+
+  if (num1Input) {
+    num1Input.value = '';
+  }
+
+  if (num2Input) {
+    num2Input.value = '';
+  }
+
+  if (operacionInput) {
+    operacionInput.value = '+';
+  }
+
+  if (cantidadNotasInput) {
+    cantidadNotasInput.value = '';
+  }
+
   document.getElementById('realizarOperacionBtn').style.display = 'none';
-  document.getElementById('num1').value = '';
-  document.getElementById('num2').value = '';
-  document.getElementById('operacion').value = '+';
-  document.getElementById('cantidadNotas').value = '';
 }
 
-
-
-document.getElementById('registrarBtn').addEventListener('click', registrarUsuario);
-document.getElementById('loginBtn').addEventListener('click', login);
-document.getElementById('realizarOperacionBtn').addEventListener('click', realizarOperacionMatematica);
-document.getElementById('calcularPromedioBtn').addEventListener('click', calcularPromedio);
-document.getElementById('eleccionMenu').addEventListener('change', manejarSeleccionMenu);
+function mostrarMensaje(mensaje, tipo = 'error') {
+  Swal.fire({
+    icon: tipo === 'error' ? 'error' : 'success',
+    text: mensaje,
+    showConfirmButton: false,
+    timer: 3000
+  });
+}

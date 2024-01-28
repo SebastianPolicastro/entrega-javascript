@@ -4,55 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.min.css">
     <title>Sistema de usuarios</title>
 </head>
 <body>
-    <div id="container">
-        <h1>Bienvenido al Sistema</h1>
-        <div id="mensaje"></div>
-        <form id="formulario">
-          <label for="nombreUsuario">Nombre de usuario:</label>
-          <input type="text" id="nombreUsuario" required>
-          <label for="contrasena">Contraseña:</label>
-          <input type="password" id="contrasena" required>
-          <button type="button" id="registrarBtn">Registrar Usuario</button>
-          <button type="button" id="loginBtn">Login</button>
-        </form>
-    
-        <div id="logged-in">
-          <label for="eleccionMenu">Selecciona una opción:</label>
-          <select id="eleccionMenu" disabled>
-            <option value="0">Seleccione una opción</option>
-            <option value="1">Calcular promedio</option>
-            <option value="2">Realizar operación matemática</option>
-            <option value="3">Salir del sistema</option>
-          </select>
-    
-          <div id="operacionesMatematicas">
-            <label for="num1">Primer número:</label>
-            <input type="number" id="num1">
-            <label for="num2">Segundo número:</label>
-            <input type="number" id="num2">
-            <label for="operacion">Operación matemática:</label>
-            <select id="operacion">
-              <option value="+">Suma</option>
-              <option value="-">Resta</option>
-              <option value="*">Multiplicación</option>
-              <option value="/">División</option>
-            </select>
-            <button type="button" id="realizarOperacionBtn">Realizar Operación</button>
-          </div>
-    
-          <div id="calculoPromedio">
-            <label for="cantidadNotas">Cantidad de Notas:</label>
-            <input type="number" id="cantidadNotas">
-            <div id="notasContainer"></div>
-            <button type="button" id="calcularPromedioBtn">Establecer numero de notas</button>
-          </div>
-        </div>
+  <div id="formulario">
+    <input type="text" id="nombreUsuario" placeholder="Nombre de Usuario">
+    <input type="password" id="contrasena" placeholder="Contraseña">
+    <button id="registrarBtn">Registrar</button>
+    <button id="loginBtn">Login</button>
+  </div>
+  <div id="logged-in" style="display: none;">
+    <div id="menuButtons">
+      <button id="calcularPromedioBtn">Calcular Promedio</button>
+      <button id="operacionesMatematicasBtn">Operaciones Matemáticas</button>
+      <button id="logoutBtn">Salir del Sistema</button>
     </div>
-    
+    <div id="calculoPromedio" style="display: none;">
+      <input type="number" id="cantidadNotas" placeholder="Cantidad de Notas">
+      <div id="notasContainer"></div>
+      <button id="realizarCalculoPromedioBtn">Establecer cantidad de notas</button>
+    </div>
+    <div id="operacionesMatematicas" style="display: none;">
+      <input type="number" id="num1" placeholder="Número 1">
+      <input type="number" id="num2" placeholder="Número 2">
+      <div id="operacionButtons">
+        <button class="operacionBtn" data-operacion="+">Suma</button>
+        <button class="operacionBtn" data-operacion="-">Resta</button>
+        <button class="operacionBtn" data-operacion="*">Multiplicación</button>
+        <button class="operacionBtn" data-operacion="/">División</button>
+      </div>
+    <button id="realizarOperacionBtn">Realizar Operación</button>
+    </div>
+  </div>
+</body>
 
     <script src="./js/main.js"></script>
-</body>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10.16.6/dist/sweetalert2.all.min.js"></script>
 </html>
